@@ -1,0 +1,57 @@
+//cloud shell - settting up Windows VM
+USERNAME=azureuser
+PASSWORD=$(openssl rand -base64 32)
+
+//In Azure cloud shell web 
+az vm create \
+  --name myVM \
+  --resource-group 28675acc-3c05-4caa-a10c-4fc0497b6548 \
+  --image Win2019Datacenter \
+  --size Standard_DS2_v2 \
+  --location eastus \
+  --admin-username $USERNAME \
+  --admin-password $PASSWORD
+
+//Verify the VM is working
+az vm get-instance-view \
+  --name myVM \
+  --resource-group 28675acc-3c05-4caa-a10c-4fc0497b6548 \
+  --output table
+
+//Install a basic IIS 
+az vm extension set \
+  --resource-group 28675acc-3c05-4caa-a10c-4fc0497b6548 \
+  --vm-name myVM \
+  --name CustomScriptExtension \
+  --publisher Microsoft.Compute \
+  --settings "{'fileUris':['https://raw.githubusercontent.com/MicrosoftDocs/mslearn-welcome-to-azure/master/configure-iis.ps1']}" \
+  --protected-settings "{'commandToExecute': 'powershell -ExecutionPolicy Unrestricted -File configure-iis.ps1'}"
+    
+//Open up portal
+az vm open-port \
+  --name myVM \
+  --resource-group 28675acc-3c05-4caa-a10c-4fc0497b6548 \
+  --port 80
+
+//Verify configuration
+az vm show \
+  --name myVM \
+  --resource-group 28675acc-3c05-4caa-a10c-4fc0497b6548 \
+  --show-details \
+  --query [publicIps] \
+  --output tsv
+
+  //resize VM
+  az vm resize \
+  --resource-group 28675acc-3c05-4caa-a10c-4fc0497b6548 \
+  --name myVM \
+  --size Standard_DS3_v2
+
+  //show that you updated
+  az vm show \
+  --resource-group 28675acc-3c05-4caa-a10c-4fc0497b6548 \
+  --name myVM \
+  --query "hardwareProfile" \
+  --output tsv
+
+  
